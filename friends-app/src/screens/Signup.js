@@ -1,11 +1,12 @@
-import React from 'react';
-import { Form, Input, Button, Menu, Layout } from 'antd';
-import { auth, createUserWithEmailAndPassword, db, doc, setDoc, } from '../config/firebase';
+import React, { useEffect } from 'react';
+import { Form, Input, Button } from 'antd';
+import { auth, createUserWithEmailAndPassword, onAuthStateChanged, db, doc, setDoc, } from '../config/firebase';
 import "./Signup.css"
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'
 
 function SignUp() {
-    const { Header } = Layout;
+    const navigate = useNavigate();
     let username = '';
     let email = '';
     let password = '';
@@ -14,7 +15,7 @@ function SignUp() {
         email = values.email;
         password = values.password;
         username = values.username;
-     createUserWithEmailAndPassword(auth, email, password)
+        createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 // Signed in 
                 const user = userCredential.user;
@@ -23,9 +24,10 @@ function SignUp() {
                 setDoc(dataRef, {
                     email: email,
                     username: username,
-                    uid:user.uid
+                    uid: user.uid
                 });
                 // ...
+
             })
             .catch((error) => {
                 const errorCode = error.code;
@@ -33,26 +35,28 @@ function SignUp() {
                 console.log(error)
                 // ..
             });
-    
+
     };
 
     const onFinishFailed = (errorInfo) => {
         console.log('Failed:', errorInfo);
+
+
     };
+    useEffect(()=>{
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+              const uid = user.uid;
+              console.log(`${uid}has Logged in`)
+              navigate('/Home')
+            } else {
+                navigate('/')
+                console.log("No user has logged in")
+            }
+          });
+    },[])
     return (
         <>
-            <div>
-                <Header>
-                    <div className="logo" />
-                    <h1 className="page-logo">Friends</h1>
-                    <Menu theme="dark" mode="vertical" defaultSelectedKeys={['0']}>
-                        {new Array(0).fill(null).map((_, index) => {
-                            const key = index + 1;
-                            return <Menu.Item key={key}>{`nav ${key}`}</Menu.Item>;
-                        })}
-                    </Menu>
-                </Header>
-            </div>
             <div className="signup-header"><h1>Sign Up</h1></div>
             <div className="sign-up-form">
                 <Form
